@@ -20,6 +20,10 @@ int Point2D::getY()
 {
     return m_y;
 }
+void Point2D::setFill(Fill fill)
+{
+    m_fill = fill;
+}
 Fill Point2D::getFill()
 {
     return m_fill;

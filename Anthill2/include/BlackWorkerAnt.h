@@ -2,7 +2,6 @@
 #define BLACKWORKERANT_H
 
 #include "Point2D.h"
-#include "Food.h"
 #include "Ant.h"
 #include "Fill.h"
 
@@ -24,11 +23,12 @@ class BlackWorkerAnt : public Ant
         bool m_is_resting;
         bool m_is_carrying_food;
         Point2D* m_anthill_pos;
+        Point2D* m_food_carried;
 
         void m_rest();
         void m_getTired();
-        Food* m_whichFoodToPick();
-        void m_pickUpFood(Food* food);
+        Point2D* m_whichFoodToPick();
+        void m_pickUpFood(Point2D* food);
         void m_deliverFood();
         Point2D* m_findStrongestScent();
 };

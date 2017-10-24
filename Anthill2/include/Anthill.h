@@ -10,20 +10,19 @@
 #include "BlackSoldierAnt.h"
 #include "RedAnt.h"
 
-#include <iostream>
-
 using std::vector;
 
 class Anthill : public Point2D
 {
     public:
-        Anthill(int x, int y, Fill anthill_color);
+        Anthill(int x, int y);
         virtual ~Anthill();
 
         static int obj_counter_anthill;
 
+        void lowerSpawnCountdown();
         bool doesAntSpawn();
-        vector<Ant*> spawnAnts(vector<Point2D*> &empty_around);
+        virtual vector<Ant*> spawnAnts(vector<Point2D*> &empty_around) = 0;
 
     protected:
 

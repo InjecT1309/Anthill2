@@ -5,7 +5,7 @@ int BlackWorkerAnt::obj_counter_worker = 0;
 BlackWorkerAnt::BlackWorkerAnt(int x, int y, Point2D* anthill_pos) : Ant(x, y, blackWorkerAnt),
                                         m_anthill_pos(anthill_pos), m_energy(100), m_is_carrying_food(false)
 {
-    m_agression=5;
+    m_agression=rand()%10;
     obj_counter_worker++;
 }
 
@@ -33,7 +33,7 @@ void BlackWorkerAnt::work()
     }
     else if(m_is_carrying_food==true)
     {
-        m_pickNewPosition(m_anthill_pos);
+        Ant::m_pickNewPosition(m_anthill_pos);
         m_getTired();
     }
     else if(m_checkIfFillIsAdjacent(food)==true)
@@ -75,24 +75,25 @@ void BlackWorkerAnt::m_getTired()
 {
     m_energy-=2;
 }
-Food* BlackWorkerAnt::m_whichFoodToPick()
+Point2D* BlackWorkerAnt::m_whichFoodToPick()
 {
-    Food* output;
+    Point2D* output;
 
     for(int i=0; i<m_adjacent.size(); i++)
     {
         if(m_adjacent[i]->getFill()==food)
         {
-            output = static_cast<Food*>(m_adjacent[i]);
+            output = m_adjacent[i];
             break;
         }
     }
 
     return output;
 }
-void BlackWorkerAnt::m_pickUpFood(Food* food)
+void BlackWorkerAnt::m_pickUpFood(Point2D* food)
 {
-    food->lowerFoodLevel(10);
+    m_food_carried = food;
+    food->setFill(empty);
     m_is_carrying_food = true;
 }
 void BlackWorkerAnt::m_deliverFood()
@@ -101,14 +102,16 @@ void BlackWorkerAnt::m_deliverFood()
 }
 Point2D* BlackWorkerAnt::m_findStrongestScent()
 {
-    Point2D* strongest = m_visible[0];
+    Point2D tmp = Point2D(0, 0, empty, 0);
+    Point2D* strongest;
     Point2D* checked;
 
-    for(int i=0; i<m_visible.size(); i++)
+    for(int i=0; i<m_adjacent.size(); i++)
     {
-        if((m_visible[i]->getFill()==empty)&&(getDistance(m_visible[i])>3))
+        if((m_adjacent[i]->getFill()==empty)&&
+           (m_adjacent[i]->getX()!=m_prev_pos_x)&&(m_adjacent[i]->getY()!=m_prev_pos_y))
         {
-            checked = m_visible[i];
+            checked = m_adjacent[i];
 
             if((checked->getScentLevel())>(strongest->getScentLevel()))
             {
@@ -116,6 +119,8 @@ Point2D* BlackWorkerAnt::m_findStrongestScent()
             }
         }
     }
+
+    if(strongest->getScentLevel()==0)  return m_pickNewPosition();
 
     return strongest;
 }

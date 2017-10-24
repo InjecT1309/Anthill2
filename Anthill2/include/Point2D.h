@@ -16,6 +16,7 @@ class Point2D
 
         int getX();
         int getY();
+        void setFill(Fill fill);
         Fill getFill();
         int getScentLevel();
         void lowerScentLevel();

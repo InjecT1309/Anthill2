@@ -23,7 +23,6 @@ class Ant : public Point2D
 
         int getVision();
         int getHealth();
-        int howManyVisible();
 
     protected:
         vector<Point2D*> m_visible;
@@ -32,14 +31,17 @@ class Ant : public Point2D
         int m_health_points;
         int m_agression;
         int m_vision_radious;
-        bool m_is_dead;
+        int m_prev_pos_x;
+        int m_prev_pos_y;
 
         void m_setAdjacent();
         bool m_checkIfFillIsVisible(Fill fill);
         bool m_checkIfFillIsAdjacent(Fill fill);
         Point2D* m_findClosestFill(Fill fill);
-        Point2D* m_pickNewPosition();
+        Point2D* m_pickNewPosition(bool continue_move_direction=true);
         Point2D* m_pickNewPosition(Point2D* destination);
+        void m_move(Point2D* point_to_move);
+        Point2D* m_set_continue_point();
         bool m_anyMovementAvailable();
 
         Ant* m_whichAntToAttack(Fill ant_type);

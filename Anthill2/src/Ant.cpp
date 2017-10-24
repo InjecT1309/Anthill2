@@ -2,7 +2,8 @@
 
 int Ant::obj_counter_ant = 0; //debug
 
-Ant::Ant(int x, int y, Fill ant_type) : Point2D(x, y, ant_type), m_health_points(100), m_agression(1), m_vision_radious(6), m_is_dead(false)
+Ant::Ant(int x, int y, Fill ant_type) : Point2D(x, y, ant_type), m_health_points(100), m_agression(1),
+            m_vision_radious(7), m_prev_pos_x(-1), m_prev_pos_y(-1)
 {
     obj_counter_ant++;
 }
@@ -17,7 +18,10 @@ void Ant::setVisible(vector<Point2D*> whats_around)
 
 bool Ant::checkIfDead()
 {
-    return m_is_dead;
+    if(m_health_points<=0)
+        return true;
+    else
+        return false;
 }
 int Ant::getVision()
 {
@@ -26,10 +30,6 @@ int Ant::getVision()
 int Ant::getHealth()
 {
     return m_health_points;
-}
-int Ant::howManyVisible()
-{
-    return m_visible.size();
 }
 
 void Ant::m_setAdjacent()
@@ -74,24 +74,47 @@ Point2D* Ant::m_findClosestFill(Fill fill)
 
     return closest;
 }
-Point2D* Ant::m_pickNewPosition()
+Point2D* Ant::m_pickNewPosition(bool continue_move_direction)
 {
-    if(m_anyMovementAvailable()==true)
+    if(continue_move_direction==true)
     {
-        int which_direction;
-
-        do
+        int is_continuing = rand()%4;
+        if(is_continuing<3)
         {
-            which_direction = rand()%m_adjacent.size();
-        }   while(m_adjacent[which_direction]->getFill()!=empty);
-
-        m_x = m_adjacent[which_direction]->getX();
-        m_y = m_adjacent[which_direction]->getY();
-
-        return m_adjacent[which_direction];
+            Point2D* continue_point = m_set_continue_point();
+            if(continue_point->getFill() == empty)
+            {
+                m_move(continue_point);
+                return continue_point;
+            }
+            else
+            {
+                continue_move_direction=false;
+            }
+        }
+        else
+        {
+            continue_move_direction=false;
+        }
     }
+    if(continue_move_direction==false)
+    {
+        if(m_anyMovementAvailable()==true)
+        {
+            int which_direction;
 
-    return static_cast<Point2D*>(this);
+            do
+            {
+                which_direction = rand()%m_adjacent.size();
+            }   while(m_adjacent[which_direction]->getFill()!=empty);
+
+            m_move(m_adjacent[which_direction]);
+
+            return m_adjacent[which_direction];
+        }
+
+        return static_cast<Point2D*>(this);
+    }
 }
 Point2D* Ant::m_pickNewPosition(Point2D* destination)
 {
@@ -99,10 +122,14 @@ Point2D* Ant::m_pickNewPosition(Point2D* destination)
     {
         Point2D* point_to_move;
 
+        //gets a point to compare with later
         for(int i=0; i<m_adjacent.size(); i++)
         {
             if(m_adjacent[i]->getFill()==empty)
+            {
                 point_to_move = m_adjacent[i];
+                break;
+            }
         }
 
         for(int i=0; i<m_adjacent.size(); i++)
@@ -112,12 +139,36 @@ Point2D* Ant::m_pickNewPosition(Point2D* destination)
                 point_to_move = m_adjacent[i];
         }
 
-        m_x = point_to_move->getX();
-        m_y = point_to_move->getY();
+        m_move(point_to_move);
 
         return point_to_move;
     }
     return static_cast<Point2D*>(this);
+}
+void Ant::m_move(Point2D* point_to_move)
+{
+    m_prev_pos_x = m_x;
+    m_prev_pos_y = m_y;
+
+    m_x = point_to_move->getX();
+    m_y = point_to_move->getY();
+}
+Point2D* Ant::m_set_continue_point()
+{
+    if(m_prev_pos_x!=-1)
+    {
+        int diff_x = m_x - m_prev_pos_x;
+        int diff_y = m_y - m_prev_pos_y;
+
+        for(int i=0; i<m_visible.size(); i++)
+        {
+            if((m_visible[i]->getX() == m_x+diff_x)&&(m_visible[i]->getY() == m_y+diff_y))
+            {
+                return m_visible[i];
+            }
+        }
+    }
+    return m_adjacent[0];
 }
 bool Ant::m_anyMovementAvailable()
 {
@@ -129,7 +180,7 @@ bool Ant::m_anyMovementAvailable()
 }
 Ant* Ant::m_whichAntToAttack(Fill ant_type)
 {
-    Ant* output = nullptr;
+    Ant* output;
 
     for(int i=0; i<m_adjacent.size(); i++)
     {
@@ -144,12 +195,14 @@ Ant* Ant::m_whichAntToAttack(Fill ant_type)
 }
 void Ant::m_attack(Ant* enemy)
 {
-    enemy->m_takeDamage(m_agression);
+    if(m_agression>0)
+        enemy->m_takeDamage(m_agression);
+    else
+        m_pickNewPosition();
 }
 void Ant::m_takeDamage(int how_much_dmg)
 {
     m_health_points-=how_much_dmg;
-    if(m_health_points<=0)  m_is_dead=true;
 }
 
 Ant::~Ant()

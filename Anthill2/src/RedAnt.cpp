@@ -2,17 +2,16 @@
 
 int RedAnt::obj_counter_red = 0;
 
-RedAnt::RedAnt(int x, int y) : Ant(x, y, redAnt)
+RedAnt::RedAnt(int x, int y) : Ant(x, y, redAnt), m_hunger_value(0)
 {
-    m_agression = 15;
+    m_agression = rand()%40;
 
     obj_counter_red++;
 }
 
 void RedAnt::work()
 {
-    m_lowerHealth();
-
+    if(m_hunger_value>15)   m_lowerHealth();
     if(m_checkIfFillIsAdjacent(blackSoliderAnt))
     {
         m_attack(m_whichAntToAttack(blackSoliderAnt));
@@ -21,15 +20,15 @@ void RedAnt::work()
     {
         m_attack(m_whichAntToAttack(blackWorkerAnt));
     }
-    else if(m_health_points<120)
+    else if(m_hunger_value>15)
     {
-        if(m_checkIfFillIsAdjacent(food)==true)
-        {
-            m_eatFood(m_whichFoodToEat());
-        }
-        else if(m_checkIfNearbyAntHasFood()==true)
+        if(m_checkIfNearbyAntHasFood()==true)
         {
             m_pickNewPosition(m_findClosestAntWithFood());
+        }
+        else if(m_checkIfFillIsAdjacent(food)==true)
+        {
+            m_eatFood(m_whichFoodToEat());
         }
         else if(m_checkIfFillIsVisible(food)==true)
         {
@@ -44,32 +43,34 @@ void RedAnt::work()
     {
         m_pickNewPosition();
     }
+
+    m_hunger_value++;
 }
 
 void RedAnt::m_lowerHealth()
 {
-    m_health_points--;
-    if(m_health_points<=0)  m_is_dead=true;
+    m_health_points-=2;
 }
-Food* RedAnt::m_whichFoodToEat()
+Point2D* RedAnt::m_whichFoodToEat()
 {
-    Food* output;
+    Point2D* output;
 
     for(int i=0; i<m_adjacent.size(); i++)
     {
         if(m_adjacent[i]->getFill()==food)
         {
-            output = static_cast<Food*>(m_adjacent[i]);
+            output = m_adjacent[i];
             break;
         }
     }
 
     return output;
 }
-void RedAnt::m_eatFood(Food* food)
+void RedAnt::m_eatFood(Point2D* food)
 {
-    food->lowerFoodLevel(5);
-    m_health_points+=10;
+    food->setFill(empty);
+    m_health_points+=15;
+    m_hunger_value=0;
 }
 bool RedAnt::m_checkIfNearbyAntHasFood()
 {
